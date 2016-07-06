@@ -1462,7 +1462,7 @@ elif [ $os_version == "CentOS" ]; then
 		#fi
 		#echo -n " fs.suid_dumpable is set to 0: "
 		#alert0 $check_core_dump2
-		echo -n "          1.6.2 Configure ExecShield:                                                      "
+		echo -n   "        1.6.2 Configure ExecShield:                                                      "
 		check_execshield=`sysctl kernel.exec-shield	| awk '{print $3}'`
 		alert1 $check_execshield
 		echo -n   "        1.6.3 Enable Randomized Virtual Memory Region Placement:                         "
