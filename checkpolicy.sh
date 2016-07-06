@@ -43,16 +43,19 @@ else
         echo "[+] DONT FIND OTP USE IN SERVER. CHECK MANUAL CONFIGURE OTP"
 fi
 limit_ip_ssh=$(iptables -n -L INPUT |grep "dpt:$ssh_port_use" |awk {'print $4'})
-if [ -z $limit_ip_ssh ]; then
+if [ -z "$limit_ip_ssh" ]; then
         echo  "[+] SERVER DONT CONFIGURE IPTABLES FOR SSH"
 else
-        echo "[+] SERVER CONFIGURE SSH SOURCE PORT LIMIT WITH IP:" "$limit_ip_ssh"
+        for ip in "$limit_ip_ssh"
+                do
+                        echo "[+] SERVER CONFIGURE SSH SOURCE PORT LIMIT WITH IP:" $ip
+                done
 fi
 
 echo "--------------------------------------------- CHECK IPTABLE ---------------------------------------------"
 echo "[+] CHECK RULE IPTABLES CHAIN INPUT SERVER"
 port_input=`iptables -n -L INPUT |grep "ACCEPT" |awk {'print $7}'|uniq |grep  -v "ESTABLISHED" |grep '[^[:blank:]]'`
-if [ -z $port_input ]; then 
+if [ -z "$port_input" ]; then 
 		echo "    [-] NO RULE IN CHAIN OUTPUT"
 else
 		for port in $port_input
@@ -67,7 +70,7 @@ else
 fi
 echo "[+] CHECK RULE IPTABLES CHAIN OUTPUT SERVER"
 port_output=`iptables -n -L OUTPUT |grep "ACCEPT" |awk {'print $7}'|uniq |grep  -v "ESTABLISHED" |grep '[^[:blank:]]'`
-if [ -z $port_output ]; then 
+if [ -z "$port_output" ]; then 
 		echo "    [-] NO RULE IN CHAIN OUTPUT"
 else
 		for port in $port_output
@@ -82,7 +85,7 @@ else
 fi
 echo "[+] CHECK RULE IPTABLES CHAIN FORWARD SERVER"
 rule_forward=`iptables -n -L FORWARD |grep -v "Chain" |grep "ACCEPT" |awk '{ if (-length($7) == 0 ) print "    [-] SOURCE IP: ", $4 ,"  DEST IP: ", $ 5 ,"  PORT: ALL";else if ( match("type", $7) ) print "    [-] SOURCE IP: ", $4 ,"  DEST IP: ", $ 5 ,"  PORT: ICMP"; else print "    [-] SOURCE IP: ", $4 ,"  DEST IP: ", $ 5 ,"  PORT: ", $7, $8;}' |uniq`
-if [ -z $rule_forward ]; then
+if [ -z "$rule_forward" ]; then
 		echo "    [-] NO RULE IN CHAIN FORWARD"
 else
 		for rule in "$rule_forward"
