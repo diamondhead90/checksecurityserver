@@ -306,7 +306,40 @@ function check_service_enable {
 	        echo $FAIL
 	fi
 }
-
+function check_rpm_install {
+	check_rpm=`rpm -q $1`
+	check_OK=`echo $?`
+	alert0 $check_OK
+	}
+function check_rpm_not_install {
+	check_rpm=`rpm -q $1`
+	check_NOT_OK=`echo $?`
+	alert1 $check_NOT_OK
+	}
+function check_chkconfig_on {
+	level=`runlevel |awk '{print $2}'`
+	check_chk1=`chkconfig --list $1 2>/dev/null`
+	if [ $? -eq 0 ]; then
+		check_chk2=`chkconfig --list $1 | cut -d $level -f 2 |awk '{print $1}' | cut -d ':' -f 2`
+		alert1 $check_chk2
+	else
+	echo $FAIL
+	fi
+}
+function check_chkconfig_off {
+	level=`runlevel |awk '{print $2}'`
+	check_chk1=`chkconfig --list $1 2>/dev/null`
+	if [ $? -eq 0 ]; then
+	check_chk2=`chkconfig --list $1 | cut -d $level -f 2 |awk '{print $1}' | cut -d ':' -f 2`
+	alert0 $check_chk2
+	else
+	echo $PASS
+	fi
+}
+function check_chkconfg_xinetd_off {
+	check_chk=`chkconfig --list $1 | awk '{print $2}' 2>/dev/null`
+	alert0 $check_chk
+}
 if [ $os_version == "Ubuntu" ]; then
 		echo      "---------------------------------------------------------------------------------------------------------"
 		echo -n   "1. Patching and Software Updates:                                                        "
