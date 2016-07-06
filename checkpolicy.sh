@@ -46,13 +46,13 @@ limit_ip_ssh=$(iptables -n -L INPUT |grep "dpt:$ssh_port_use" |awk {'print $4'})
 if [ -z $limit_ip_ssh ]; then
         echo  "[+] SERVER DONT CONFIGURE IPTABLES FOR SSH"
 else
-        echo "[+] SERVER CONFIGURE SSH SOURCE PORT LIMIT WITH IP:" $limit_ip_ssh
+        echo "[+] SERVER CONFIGURE SSH SOURCE PORT LIMIT WITH IP:" "$limit_ip_ssh"
 fi
 
 echo "--------------------------------------------- CHECK IPTABLE ---------------------------------------------"
 echo "[+] CHECK RULE IPTABLES CHAIN INPUT SERVER"
 port_input=`iptables -n -L INPUT |grep "ACCEPT" |awk {'print $7}'|uniq |grep  -v "ESTABLISHED" |grep '[^[:blank:]]'`
-if [ -z $port_output ]; then 
+if [ -z $port_input ]; then 
 		echo "    [-] NO RULE IN CHAIN OUTPUT"
 else
 		for port in $port_input
@@ -101,7 +101,14 @@ fi
 function check_schedule_crontab {
 	for user in `cat /etc/passwd | cut -d":" -f1`;
         do
-                a=`crontab -l -u $user |grep -v "^#" |grep $1 |wc -l`
+				check_cron=`crontab -l -u $user 2>/dev/null`
+				if [ $? == 0 ]; then
+                		excute=`crontab -l -u $user |grep -v "^#" |grep $1 |wc -l`
+						if [ $excute -ge 1 ]; then
+								return $excute
+								break
+						fi
+				fi
         done
 }
 check_maldet=`maldet  2>/dev/null`
@@ -120,26 +127,26 @@ else
 fi
 if [[ ($ldm -eq 1) && ( $clamav -eq 1 ) && ( $cron -eq 1 ) ]]; then
 		check_scan_clamav_lmd=`check_schedule_crontab 'maldet -a'`
-		if [ $check_scan_clamav_lmd -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] CLAMAV_LDM ALREADY SCHEDULED SCAN"
 		else
 				echo "[+] DONT FIND CONFIGURE CLAMAV_LDM SCHEDULED SCAN ON CRONTAB. CHECK MANUAL"
 		fi
 		check_update_clamav_lmd=`check_schedule_crontab 'maldet -u'`
-		if [ $check_update_clamav_lmd -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] CLAMAV_LDM ALREADY SCHEDULED UPDATE"
 		else
 				echo "[+] DONT FIND CONFIGURE CLAMAV_LDM SCHEDULED UPDATE ON CRONTAB. CHECK MANUAL"
 		fi
 elif [[ ($ldm -ne 1) && ( $clamav -eq 1) && ( $cron -eq 1 ) ]]; then
 		check_scan_clamav=`check_schedule_crontab 'clamavscan'`
-		if [ $check_scan_clamav -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] CLAMAV ALREADY SCHEDULED SCAN"
 		else
 				echo "[+] DONT FIND CONFIGURE CLAMAV SCHEDULED SCAN ON CRONTAB. CHECK MANUAL"
 		fi
 		check_update_clamav=`check_schedule_crontab 'freshclam'`
-		if [ $check_update_clamav -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] CLAMAV ALREADY SCHEDULED UPDATE"
 		else
 				echo "[+] DONT FIND CONFIGURE CLAMAV SCHEDULED UPDATE ON CRONTAB. CHECK MANUAL"
@@ -154,13 +161,13 @@ else
 fi
 if [[ ($avg -eq 1) && ( $cron -eq 1 ) ]]; then
 		check_scan_avg=check_schedule_crontab 'avgscan'
-		if [ $check_scan_avg -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] AVG ANTIVIRUT ALREADY SCHEDULED SCAN"
 		else
 				echo "[+] DONT FIND CONFIGURE AVG ANTIVIRUT SCHEDULED SCAN ON CRONTAB. CHECK MANUAL"
 		fi
 		check_update_avg=`check_schedule_crontab 'avgupdate'`
-		if [ $check_update_avg -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] AVG ALREADY SCHEDULED UPDATE"
 		else
 				echo "[+] DONT FIND CONFIGURE AVG SCHEDULED UPDATE ON CRONTAB. CHECK MANUAL"
@@ -176,7 +183,7 @@ else
 fi
 if [[ ($chkrootkit -eq 1) && ( $cron -eq 1 ) ]]; then
 		check_scan_chkrootkit=`check_schedule_crontab 'chkrootkit'`
-		if [ $check_scan_chkrootkit -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] CHKROOTKIT ALREADY SCHEDULED SCAN"
 		else
 				echo "[+] DONT FIND CONFIGURE CHKROOTKIT SCHEDULED SCAN ON CRONTAB. CHECK MANUAL"
@@ -192,7 +199,7 @@ else
 fi
 if [[ ($rkhunter -eq 1) && ( $cron -eq 1 ) ]]; then
 		check_scan_rkhunter=`check_schedule_crontab 'rkhunter'`
-		if [ $check_scan_rkhunter -ge 1 ]; then
+		if [ $? -ge 1 ]; then
 				echo "[+] RKHUNTER ALREADY SCHEDULED SCAN"
 		else
 				echo "[+] DONT FIND CONFIGURE RKHUNTER SCHEDULED SCAN ON CRONTAB. CHECK MANUAL"
